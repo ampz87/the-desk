@@ -8,16 +8,19 @@ import LifePlan from './panels/LifePlan'
 import ResultsLog from './panels/ResultsLog'
 import Signal from './panels/Signal'
 import Benchmarks from './panels/Benchmarks'
+import MockIC from './panels/MockIC'
 import ComingSoon from './panels/ComingSoon'
 import { useLifePlan } from './hooks/useLifePlan'
 import { useResultsLog } from './hooks/useResultsLog'
 import { useSignalLatest } from './hooks/useSignalLatest'
+import { useMockIC } from './hooks/useMockIC'
 
 function Desk() {
   const [activePanel, setActivePanel] = useState('today')
   const lifePlan = useLifePlan()
   const resultsLog = useResultsLog()
   const signal = useSignalLatest()
+  const mockIC = useMockIC()
 
   return (
     <>
@@ -26,7 +29,7 @@ function Desk() {
         <Sidebar active={activePanel} onSelect={setActivePanel} />
         <main>
           {activePanel === 'today' && (
-            <Today lifePlan={lifePlan} resultsLog={resultsLog} signal={signal} onGoto={setActivePanel} />
+            <Today lifePlan={lifePlan} resultsLog={resultsLog} signal={signal} mockIC={mockIC} onGoto={setActivePanel} />
           )}
           {activePanel === 'life' && <LifePlan lifePlan={lifePlan} />}
           {activePanel === 'results' && <ResultsLog resultsLog={resultsLog} />}
@@ -35,9 +38,7 @@ function Desk() {
             <ComingSoon id="quiz" moduleNum="01" title="Quiz" blurb="Daily recall + judgment reps — arriving in Phase 2." />
           )}
           {activePanel === 'benchmarks' && <Benchmarks />}
-          {activePanel === 'mockic' && (
-            <ComingSoon id="mockic" moduleNum="03" title="Mock IC" blurb="Weekly deal memo practice — arriving in Phase 2." />
-          )}
+          {activePanel === 'mockic' && <MockIC mockIC={mockIC} />}
         </main>
       </div>
       <footer className="desk-footer">The Desk — a personal PE/VC study surface.</footer>

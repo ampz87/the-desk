@@ -1,6 +1,6 @@
 # The Desk — PE/VC Study Portal
 
-Personal daily-use portal for building PE/VC judgment skills. Phase 1: auth, Life Plan, Results Log, Signal (Daily tab). Quiz, Benchmarks, and Mock IC are Phase 2+ and appear as "coming soon" placeholders.
+Personal daily-use portal for building PE/VC judgment skills. Phase 1: auth, Life Plan, Results Log, Signal (Daily tab). Phase 2 (in progress): Benchmarks (D2C/Consumer sector only so far), Mock IC. Quiz is still a "coming soon" placeholder.
 
 ## Stack
 
@@ -18,9 +18,14 @@ npm run dev
 
 ## Database setup
 
-Run [`supabase/migrations/0001_phase1_schema.sql`](supabase/migrations/0001_phase1_schema.sql) in the Supabase SQL editor to create the `life_plan`, `results_log`, and `signal_daily` tables with row-level security.
+Run the migrations in [`supabase/migrations/`](supabase/migrations/) in order, in the Supabase SQL editor:
 
-Phase 1 data is entered directly in the Supabase table editor — no in-app forms yet.
+- `0001_phase1_schema.sql` — `life_plan`, `results_log`, `signal_daily`
+- `0002_phase2_mockic.sql` — `mock_ic_deals`, `mock_ic_memos`
+
+All tables have row-level security (authenticated-only access).
+
+Life Plan, Signal, and this week's Mock IC deal facts are entered directly in the Supabase table editor — no in-app forms yet. Mock IC memos are the one thing written and saved from within the app itself; saving a memo for the first time on a given deal also logs a `memo_written` row in `results_log`.
 
 ## Deployment
 

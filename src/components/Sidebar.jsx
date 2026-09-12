@@ -2,7 +2,7 @@ const ITEMS = [
   { id: 'today', num: '00', label: 'Today' },
   { id: 'quiz', num: '01', label: 'Quiz', disabled: true },
   { id: 'benchmarks', num: '02', label: 'Benchmarks' },
-  { id: 'mockic', num: '03', label: 'Mock IC', disabled: true },
+  { id: 'mockic', num: '03', label: 'Mock IC' },
   { id: 'signal', num: '04', label: 'Signal' },
   { id: 'results', num: '05', label: 'Results log' },
   { id: 'life', num: '06', label: 'Life plan' },

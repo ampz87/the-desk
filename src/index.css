@@ -310,6 +310,43 @@ td.lp-note{ color:var(--ink-soft); font-size:12.5px; }
   border-radius:3px; padding:10px 14px; margin-top:16px;
 }
 
+/* Mock IC */
+.ic-deal-head{ display:flex; justify-content:space-between; margin-bottom:16px; }
+.ic-deal-name{ font-size:19px; font-weight:600; }
+.ic-deal-meta{ font-size:12px; color:var(--ink-soft); }
+.ic-facts{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:18px; }
+.ic-fact-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); }
+.ic-fact-value{ font-family:'IBM Plex Mono', monospace; font-size:14px; margin-top:3px; }
+textarea.ic-memo{
+  width:100%;
+  min-height:180px;
+  border:1px dashed var(--rule);
+  background:var(--paper);
+  border-radius:3px;
+  padding:14px;
+  font-family:'IBM Plex Sans', sans-serif;
+  font-size:13.5px;
+  color:var(--ink);
+  resize:vertical;
+}
+.ic-prompt{ font-size:12px; color:var(--ink-soft); margin:8px 0 14px 0; }
+.ic-save-row{ display:flex; align-items:center; gap:12px; margin-top:12px; }
+.ic-save-btn{
+  padding:9px 18px;
+  border:none;
+  border-radius:3px;
+  background:var(--ink);
+  color:var(--paper-raised);
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+}
+.ic-save-btn:hover{ background:var(--rule-dark); }
+.ic-save-btn:disabled{ opacity:.6; cursor:default; }
+.ic-save-status{ font-size:12px; color:var(--ink-soft); }
+.ic-save-status.success{ color:var(--moss); }
+.ic-save-status.error{ color:var(--burgundy); }
+
 /* Signal */
 .signal-row{ display:flex; gap:16px; }
 .signal-col{ flex:1; }

@@ -1,7 +1,14 @@
-export default function Today({ lifePlan, resultsLog, signal, onGoto }) {
+export default function Today({ lifePlan, resultsLog, signal, mockIC, onGoto }) {
   const lifePlanCount = lifePlan.rows ? lifePlan.rows.length : null
   const totalLogged = resultsLog.rows ? resultsLog.rows.length : null
   const signalDate = signal.row ? new Date(signal.row.entry_date).toLocaleDateString() : null
+  const mockICStat = mockIC.deal === undefined
+    ? 'Loading…'
+    : mockIC.deal === null
+      ? 'No deal loaded yet'
+      : mockIC.memo
+        ? 'Memo saved this week'
+        : `${mockIC.deal.deal_name} — memo not started`
 
   return (
     <section className="panel active" id="today">
@@ -44,10 +51,10 @@ export default function Today({ lifePlan, resultsLog, signal, onGoto }) {
           <div className="card-stat">1 / 5 sectors populated</div>
         </div>
 
-        <div className="card disabled">
-          <div className="card-top"><span className="card-title">Mock IC</span><span className="card-tag soon">Coming soon</span></div>
+        <div className="card" onClick={() => onGoto('mockic')}>
+          <div className="card-top"><span className="card-title">Mock IC</span><span className="card-tag">This week</span></div>
           <div className="card-body">Raw deal facts, memo writing practice — thesis, risks, and pricing verdict.</div>
-          <div className="card-stat">Phase 2</div>
+          <div className="card-stat">{mockICStat}</div>
         </div>
       </div>
     </section>
