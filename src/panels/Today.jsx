@@ -38,10 +38,10 @@ export default function Today({ lifePlan, resultsLog, signal, onGoto }) {
           <div className="card-stat">Phase 2</div>
         </div>
 
-        <div className="card disabled">
-          <div className="card-top"><span className="card-title">Benchmarks</span><span className="card-tag soon">Coming soon</span></div>
+        <div className="card" onClick={() => onGoto('benchmarks')}>
+          <div className="card-top"><span className="card-title">Benchmarks</span><span className="card-tag">Reference</span></div>
           <div className="card-body">Gross margin, CAC payback, ROCE ranges by sector — with rationale, not just numbers.</div>
-          <div className="card-stat">Phase 2</div>
+          <div className="card-stat">1 / 5 sectors populated</div>
         </div>
 
         <div className="card disabled">

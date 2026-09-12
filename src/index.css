@@ -258,6 +258,35 @@ main{ min-width:0; }
 .log-type{ font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--brass-deep); }
 .log-date{ color:var(--ink-soft); font-size:12px; }
 
+/* Benchmarks */
+.sector-pills{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+.pill{
+  font-size:11.5px;
+  padding:5px 11px;
+  border-radius:20px;
+  border:1px solid var(--rule);
+  color:var(--ink-soft);
+}
+.pill.active{ background:var(--ink); color:var(--paper-raised); border-color:var(--ink); }
+table.bench{ width:100%; border-collapse:collapse; font-size:13.5px; }
+table.bench th{
+  text-align:left;
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--ink-soft);
+  font-weight:500;
+  padding:8px 10px;
+  border-bottom:1px solid var(--rule);
+}
+table.bench td{ padding:11px 10px; border-bottom:1px solid var(--rule); vertical-align:top; }
+table.bench td.param{ font-weight:500; white-space:nowrap; }
+table.bench td.range{ font-family:'IBM Plex Mono', monospace; color:var(--brass-deep); white-space:nowrap; }
+table.bench td.rationale{ color:var(--ink-soft); font-size:12.5px; }
+.variability-note{
+  font-size:12px; color:var(--ink-soft); font-style:italic; margin-top:12px;
+}
+
 /* Life plan */
 table.lifeplan{ width:100%; border-collapse:collapse; font-size:13.5px; }
 table.lifeplan th{

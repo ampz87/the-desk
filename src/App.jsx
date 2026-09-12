@@ -7,6 +7,7 @@ import Today from './panels/Today'
 import LifePlan from './panels/LifePlan'
 import ResultsLog from './panels/ResultsLog'
 import Signal from './panels/Signal'
+import Benchmarks from './panels/Benchmarks'
 import ComingSoon from './panels/ComingSoon'
 import { useLifePlan } from './hooks/useLifePlan'
 import { useResultsLog } from './hooks/useResultsLog'
@@ -33,9 +34,7 @@ function Desk() {
           {activePanel === 'quiz' && (
             <ComingSoon id="quiz" moduleNum="01" title="Quiz" blurb="Daily recall + judgment reps — arriving in Phase 2." />
           )}
-          {activePanel === 'benchmarks' && (
-            <ComingSoon id="benchmarks" moduleNum="02" title="Benchmarks" blurb="Sector ranges with rationale — arriving in Phase 2." />
-          )}
+          {activePanel === 'benchmarks' && <Benchmarks />}
           {activePanel === 'mockic' && (
             <ComingSoon id="mockic" moduleNum="03" title="Mock IC" blurb="Weekly deal memo practice — arriving in Phase 2." />
           )}
