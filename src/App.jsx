@@ -9,11 +9,13 @@ import ResultsLog from './panels/ResultsLog'
 import Signal from './panels/Signal'
 import Benchmarks from './panels/Benchmarks'
 import MockIC from './panels/MockIC'
-import ComingSoon from './panels/ComingSoon'
+import Quiz from './panels/Quiz'
 import { useLifePlan } from './hooks/useLifePlan'
 import { useResultsLog } from './hooks/useResultsLog'
 import { useSignalLatest } from './hooks/useSignalLatest'
 import { useMockIC } from './hooks/useMockIC'
+import { useQuiz } from './hooks/useQuiz'
+import { useQuizConceptAccuracy } from './hooks/useQuizConceptAccuracy'
 
 function Desk() {
   const [activePanel, setActivePanel] = useState('today')
@@ -21,6 +23,8 @@ function Desk() {
   const resultsLog = useResultsLog()
   const signal = useSignalLatest()
   const mockIC = useMockIC()
+  const quiz = useQuiz()
+  const quizAccuracy = useQuizConceptAccuracy()
 
   return (
     <>
@@ -29,14 +33,12 @@ function Desk() {
         <Sidebar active={activePanel} onSelect={setActivePanel} />
         <main>
           {activePanel === 'today' && (
-            <Today lifePlan={lifePlan} resultsLog={resultsLog} signal={signal} mockIC={mockIC} onGoto={setActivePanel} />
+            <Today lifePlan={lifePlan} resultsLog={resultsLog} signal={signal} mockIC={mockIC} quiz={quiz} onGoto={setActivePanel} />
           )}
           {activePanel === 'life' && <LifePlan lifePlan={lifePlan} />}
-          {activePanel === 'results' && <ResultsLog resultsLog={resultsLog} />}
+          {activePanel === 'results' && <ResultsLog resultsLog={resultsLog} quizAccuracy={quizAccuracy} />}
           {activePanel === 'signal' && <Signal signal={signal} />}
-          {activePanel === 'quiz' && (
-            <ComingSoon id="quiz" moduleNum="01" title="Quiz" blurb="Daily recall + judgment reps — arriving in Phase 2." />
-          )}
+          {activePanel === 'quiz' && <Quiz quiz={quiz} />}
           {activePanel === 'benchmarks' && <Benchmarks />}
           {activePanel === 'mockic' && <MockIC mockIC={mockIC} />}
         </main>

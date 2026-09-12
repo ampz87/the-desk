@@ -1,4 +1,4 @@
-export default function Today({ lifePlan, resultsLog, signal, mockIC, onGoto }) {
+export default function Today({ lifePlan, resultsLog, signal, mockIC, quiz, onGoto }) {
   const lifePlanCount = lifePlan.rows ? lifePlan.rows.length : null
   const totalLogged = resultsLog.rows ? resultsLog.rows.length : null
   const signalDate = signal.row ? new Date(signal.row.entry_date).toLocaleDateString() : null
@@ -9,6 +9,9 @@ export default function Today({ lifePlan, resultsLog, signal, mockIC, onGoto }) 
       : mockIC.memo
         ? 'Memo saved this week'
         : `${mockIC.deal.deal_name} — memo not started`
+  const quizStat = quiz.questions
+    ? `${quiz.questions.recall.length} recall, ${quiz.questions.judgment.length} judgment`
+    : 'Loading…'
 
   return (
     <section className="panel active" id="today">
@@ -39,10 +42,10 @@ export default function Today({ lifePlan, resultsLog, signal, mockIC, onGoto }) 
           <div className="card-stat">{signalDate ? `Latest entry: ${signalDate}` : signal.loading ? 'Loading…' : 'No entry yet'}</div>
         </div>
 
-        <div className="card disabled">
-          <div className="card-top"><span className="card-title">Quiz</span><span className="card-tag soon">Coming soon</span></div>
+        <div className="card" onClick={() => onGoto('quiz')}>
+          <div className="card-top"><span className="card-title">Quiz</span><span className="card-tag">Daily reps</span></div>
           <div className="card-body">Daily recall + judgment reps on cap tables, comps, and deal mechanics.</div>
-          <div className="card-stat">Phase 2</div>
+          <div className="card-stat">{quizStat}</div>
         </div>
 
         <div className="card" onClick={() => onGoto('benchmarks')}>

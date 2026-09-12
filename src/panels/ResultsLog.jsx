@@ -4,8 +4,9 @@ const METRIC_LABELS = {
   sector_covered: 'Sector covered',
 }
 
-export default function ResultsLog({ resultsLog }) {
+export default function ResultsLog({ resultsLog, quizAccuracy }) {
   const { rows, summary, error, loading } = resultsLog
+  const { byConcept, error: quizError, loading: quizLoading } = quizAccuracy
 
   return (
     <section className="panel active" id="results">
@@ -27,6 +28,26 @@ export default function ResultsLog({ resultsLog }) {
           <div className="stat-box"><div className="stat-num">{summary.sectorsCovered}</div><div className="stat-label">Sectors covered</div></div>
         </div>
       )}
+
+      <div className="block">
+        <div className="block-label">Quiz accuracy by concept</div>
+        {quizLoading && <div className="state-note">Loading…</div>}
+        {quizError && <div className="state-note error">Couldn't load quiz accuracy: {quizError}</div>}
+        {byConcept && byConcept.length === 0 && (
+          <div className="empty-state">No quiz answers yet — accuracy by concept will show up once you've answered some questions.</div>
+        )}
+        {byConcept && byConcept.length > 0 && (
+          <div className="bars">
+            {byConcept.map((c) => (
+              <div className="bar-row" key={c.concept}>
+                <span className="bar-label">{c.concept}</span>
+                <div className="bar-track"><div className="bar-fill" style={{ width: `${c.accuracy}%` }}></div></div>
+                <span className="bar-val">{c.accuracy}%</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="block">
         <div className="block-label">Recent entries</div>
