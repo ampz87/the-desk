@@ -90,11 +90,15 @@ export default function Quiz({ quiz }) {
       {loading && <div className="state-note">Loading…</div>}
       {error && <div className="state-note error">Couldn't load quiz: {error}</div>}
 
-      {questions && tab === 'recall' && (
-        <QuizTab key="recall" questions={questions.recall} type="recall" submitAnswer={submitAnswer} />
-      )}
-      {questions && tab === 'judgment' && (
-        <QuizTab key="judgment" questions={questions.judgment} type="judgment" submitAnswer={submitAnswer} />
+      {questions && (
+        <>
+          <div className={`tabcontent${tab === 'recall' ? ' active' : ''}`}>
+            <QuizTab questions={questions.recall} type="recall" submitAnswer={submitAnswer} />
+          </div>
+          <div className={`tabcontent${tab === 'judgment' ? ' active' : ''}`}>
+            <QuizTab questions={questions.judgment} type="judgment" submitAnswer={submitAnswer} />
+          </div>
+        </>
       )}
     </section>
   )
