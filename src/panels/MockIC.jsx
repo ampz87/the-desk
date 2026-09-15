@@ -10,10 +10,12 @@ const FACT_FIELDS = [
 ]
 
 export default function MockIC({ mockIC }) {
-  const { deal, memo, error, loading, saveMemo } = mockIC
+  const { deal, memo, backlog, error, loading, saveMemo, promote } = mockIC
   const [draft, setDraft] = useState('')
   const [saveState, setSaveState] = useState('idle') // idle | saving | saved | error
   const [saveError, setSaveError] = useState('')
+  const [promotingId, setPromotingId] = useState(null)
+  const [promoteError, setPromoteError] = useState('')
 
   useEffect(() => {
     setDraft(memo ? memo.memo_text : '')
@@ -30,6 +32,14 @@ export default function MockIC({ mockIC }) {
     }
   }
 
+  async function handlePromote(id) {
+    setPromotingId(id)
+    setPromoteError('')
+    const { error } = await promote(id)
+    setPromotingId(null)
+    if (error) setPromoteError(error)
+  }
+
   return (
     <section className="panel active" id="mockic">
       <div className="panel-head">
@@ -43,7 +53,7 @@ export default function MockIC({ mockIC }) {
       {loading && <div className="state-note">Loading…</div>}
       {error && <div className="state-note error">Couldn't load Mock IC: {error}</div>}
       {deal === null && (
-        <div className="empty-state">No deal in mock_ic_deals yet — add this week's facts in Supabase.</div>
+        <div className="empty-state">No active deal — add facts to mock_ic_deals in Supabase, or promote one from the backlog below.</div>
       )}
 
       {deal && (
@@ -77,6 +87,24 @@ export default function MockIC({ mockIC }) {
             {saveState === 'error' && <span className="ic-save-status error">Couldn't save: {saveError}</span>}
             {memo && saveState === 'idle' && <span className="ic-save-status">Last saved {new Date(memo.saved_at).toLocaleString()}</span>}
           </div>
+        </div>
+      )}
+
+      {backlog && backlog.length > 0 && (
+        <div className="block">
+          <div className="block-label">Backlog</div>
+          {promoteError && <div className="state-note error">Couldn't promote: {promoteError}</div>}
+          {backlog.map((d) => (
+            <div className="log-row" key={d.id}>
+              <span>
+                <span className="log-type">{d.stage || 'Deal'}</span>
+                {' '}{d.deal_name}{d.sector ? ` — ${d.sector}` : ''}
+              </span>
+              <button className="save-btn" onClick={() => handlePromote(d.id)} disabled={promotingId === d.id}>
+                {promotingId === d.id ? 'Promoting…' : 'Promote to active'}
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </section>

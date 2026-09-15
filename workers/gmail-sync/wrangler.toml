@@ -1,0 +1,7 @@
+name = "the-desk-gmail-sync"
+main = "src/index.js"
+compatibility_date = "2026-09-15"
+
+[triggers]
+# Once daily at 06:00 UTC. Adjust as you like — cron syntax is min hour dom mon dow.
+crons = ["0 6 * * *"]

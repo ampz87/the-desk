@@ -1,17 +1,25 @@
-export default function Today({ lifePlan, resultsLog, signal, mockIC, quiz, onGoto }) {
+import { useState } from 'react'
+import LogToBenchmarksModal from '../components/LogToBenchmarksModal'
+import LogToMockICModal from '../components/LogToMockICModal'
+
+export default function Today({ lifePlan, resultsLog, signal, mockIC, quiz, benchmarks, onGoto }) {
+  const [openModal, setOpenModal] = useState(null) // null | 'benchmarks' | 'mockic'
   const lifePlanCount = lifePlan.rows ? lifePlan.rows.length : null
   const totalLogged = resultsLog.rows ? resultsLog.rows.length : null
   const signalDate = signal.row ? new Date(signal.row.entry_date).toLocaleDateString() : null
   const mockICStat = mockIC.deal === undefined
     ? 'Loading…'
     : mockIC.deal === null
-      ? 'No deal loaded yet'
+      ? 'No active deal'
       : mockIC.memo
         ? 'Memo saved this week'
         : `${mockIC.deal.deal_name} — memo not started`
   const quizStat = quiz.questions
     ? `${quiz.questions.recall.length} recall, ${quiz.questions.judgment.length} judgment`
     : 'Loading…'
+  const benchmarksStat = benchmarks.sectors.length > 0
+    ? `${benchmarks.sectors.length} / 5 sectors populated`
+    : benchmarks.loading ? 'Loading…' : 'No benchmarks logged yet'
 
   return (
     <section className="panel active" id="today">
@@ -51,7 +59,7 @@ export default function Today({ lifePlan, resultsLog, signal, mockIC, quiz, onGo
         <div className="card" onClick={() => onGoto('benchmarks')}>
           <div className="card-top"><span className="card-title">Benchmarks</span><span className="card-tag">Reference</span></div>
           <div className="card-body">Gross margin, CAC payback, ROCE ranges by sector — with rationale, not just numbers.</div>
-          <div className="card-stat">1 / 5 sectors populated</div>
+          <div className="card-stat">{benchmarksStat}</div>
         </div>
 
         <div className="card" onClick={() => onGoto('mockic')}>
@@ -60,6 +68,27 @@ export default function Today({ lifePlan, resultsLog, signal, mockIC, quiz, onGo
           <div className="card-stat">{mockICStat}</div>
         </div>
       </div>
+
+      <div className="block" style={{ marginTop: '16px' }}>
+        <div className="block-label">Quick capture</div>
+        <div className="capture-row">
+          <button className="capture-btn" onClick={() => setOpenModal('benchmarks')}>Log to Benchmarks</button>
+          <button className="capture-btn" onClick={() => setOpenModal('mockic')}>Log to Mock IC</button>
+        </div>
+      </div>
+
+      {openModal === 'benchmarks' && (
+        <LogToBenchmarksModal
+          onClose={() => setOpenModal(null)}
+          onSaved={() => { setOpenModal(null); benchmarks.reload() }}
+        />
+      )}
+      {openModal === 'mockic' && (
+        <LogToMockICModal
+          onClose={() => setOpenModal(null)}
+          onSaved={() => { setOpenModal(null); mockIC.reload() }}
+        />
+      )}
     </section>
   )
 }

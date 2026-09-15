@@ -1,12 +1,13 @@
 # The Desk — PE/VC Study Portal
 
-Personal daily-use portal for building PE/VC judgment skills. Phase 1: auth, Life Plan, Results Log, Signal (Daily tab). Phase 2: Benchmarks (D2C/Consumer sector only so far), Mock IC, Quiz (with per-concept accuracy feeding into Results Log) — all modules are now live.
+Personal daily-use portal for building PE/VC judgment skills. Phase 1: auth, Life Plan, Results Log, Signal (Daily tab). Phase 2: Benchmarks (DB-backed, D2C/Consumer populated so far), Mock IC (backlog/active workflow), Quiz (with per-concept accuracy feeding into Results Log), and Signal Gmail automation + quick-capture forms — all live.
 
 ## Stack
 
-- React + Vite (static SPA)
+- React + Vite (static SPA), deployed on Cloudflare Pages
 - Supabase (Postgres + Auth, magic-link email)
-- Cloudflare Pages (auto-deploy from `main`)
+- Cloudflare Pages Functions (`functions/`) for the Gmail OAuth flow
+- A separate Cloudflare Worker (`workers/gmail-sync/`) for the daily Gmail cron fetch
 
 ## Local development
 
@@ -16,6 +17,8 @@ cp .env.example .env.local   # fill in your Supabase project URL + publishable k
 npm run dev
 ```
 
+To test the Gmail OAuth Pages Functions locally, copy `.dev.vars.example` to `.dev.vars` (gitignored) and fill in real values, then run `npx wrangler pages dev -- npm run dev`.
+
 ## Database setup
 
 Run the migrations in [`supabase/migrations/`](supabase/migrations/) in order, in the Supabase SQL editor:
@@ -23,18 +26,28 @@ Run the migrations in [`supabase/migrations/`](supabase/migrations/) in order, i
 - `0001_phase1_schema.sql` — `life_plan`, `results_log`, `signal_daily`
 - `0002_phase2_mockic.sql` — `mock_ic_deals`, `mock_ic_memos`
 - `0003_phase2_quiz.sql` — `quiz_questions`, `quiz_answers`
+- `0004_signal_gmail_and_capture.sql` — `benchmarks`, `gmail_oauth_tokens`, `signal_axios_raw`, plus a `status` column on `mock_ic_deals`
 
-All tables have row-level security (authenticated-only access).
+All tables have row-level security (authenticated-only access), **except `gmail_oauth_tokens`**, which has RLS enabled with zero policies — it holds a sensitive Gmail refresh token and is readable/writable only by the Supabase service role key (used server-side by the OAuth callback and the cron Worker), never by the app's normal authenticated session.
 
-Life Plan, Signal, this week's Mock IC deal facts, and all quiz questions are entered directly in the Supabase table editor — no in-app forms yet. `quiz_questions.options` is a JSON array of `{id, text}`; `correct_option_id` must match one of those ids.
+Life Plan, Signal (`signal_daily`), and all quiz questions are still entered directly in the Supabase table editor. Benchmarks and Mock IC deals can now also be added through the app itself (see Quick capture below) as well as directly in Supabase. `quiz_questions.options` is a JSON array of `{id, text}`; `correct_option_id` must match one of those ids.
 
-Two things are written and saved from within the app itself:
+Things written and saved from within the app itself:
 - **Mock IC memos** — saving a memo for the first time on a given deal also logs a `memo_written` row in `results_log`.
 - **Quiz answers** — every answer (right or wrong) inserts a new row into `quiz_answers`, building a history rather than overwriting a single status per question. Results Log's per-concept accuracy breakdown is computed live from this history.
+- **Quick capture ("Log to Benchmarks" / "Log to Mock IC")** — available on the Today dashboard and inline within the raw Axios email view on Signal. New Mock IC deals always land in the backlog (`status = 'backlog'`); promote one to `'active'` from the Mock IC tab (a partial unique index enforces at most one active deal at a time).
+- **Signal's Axios Pro Rata digest** — fetched automatically once daily by the `gmail-sync` Worker and stored unsummarized in `signal_axios_raw`; the Signal tab renders the most recent row's HTML (sanitized with DOMPurify before rendering).
+
+## Gmail sync setup (one-time)
+
+1. Cloudflare Pages project → Settings → Environment variables → add `GOOGLE_CLIENT_ID` (plain), `GOOGLE_CLIENT_SECRET` (Secret), `SUPABASE_URL` (plain), `SUPABASE_SERVICE_ROLE_KEY` (Secret).
+2. Deploy the `workers/gmail-sync` Worker separately: `cd workers/gmail-sync && npx wrangler deploy`, then set its secrets: `npx wrangler secret put GOOGLE_CLIENT_ID` (and `GOOGLE_CLIENT_SECRET`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` the same way).
+3. Visit `https://the-desk-2y2.pages.dev/api/gmail/auth` once, logged in as the Google account that receives the Axios Pro Rata newsletter, and approve Gmail read access. The resulting refresh token is stored in `gmail_oauth_tokens`.
+4. The Worker's cron trigger (daily, see `workers/gmail-sync/wrangler.toml`) picks up new matching emails from then on. To test without waiting for the schedule, hit the deployed Worker's `/sync` route directly.
 
 ## Deployment
 
-Connected to Cloudflare Pages via GitHub — every push to `main` triggers a build (`npm run build`, output directory `dist`) and deploy automatically.
+The main site is connected to Cloudflare Pages via GitHub — every push to `main` triggers a build (`npm run build`, output directory `dist`) and deploy automatically, including anything under `functions/`. The `workers/gmail-sync` Worker is a separate deployable and is **not** part of this auto-deploy — redeploy it manually (`npx wrangler deploy` from that directory) after changing its code.
 
 ## Environment variables
 
@@ -42,3 +55,7 @@ Connected to Cloudflare Pages via GitHub — every push to `main` triggers a bui
 |---|---|
 | `VITE_SUPABASE_URL` | Local `.env.local` and Cloudflare Pages project settings |
 | `VITE_SUPABASE_ANON_KEY` | Local `.env.local` and Cloudflare Pages project settings (publishable key, safe for client-side) |
+| `GOOGLE_CLIENT_ID` | Cloudflare Pages env vars (plain) and the `gmail-sync` Worker secrets |
+| `GOOGLE_CLIENT_SECRET` | Cloudflare Pages env vars (Secret) and the `gmail-sync` Worker secrets — never in `VITE_`-prefixed vars, never in the browser bundle |
+| `SUPABASE_URL` | Same value as `VITE_SUPABASE_URL`, set separately (un-prefixed) for Pages Functions and the Worker |
+| `SUPABASE_SERVICE_ROLE_KEY` | Cloudflare Pages env vars (Secret) and the `gmail-sync` Worker secrets — bypasses RLS, used only server-side, never in the browser bundle |

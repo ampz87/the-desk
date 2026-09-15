@@ -13,18 +13,22 @@ import Quiz from './panels/Quiz'
 import { useLifePlan } from './hooks/useLifePlan'
 import { useResultsLog } from './hooks/useResultsLog'
 import { useSignalLatest } from './hooks/useSignalLatest'
+import { useSignalAxios } from './hooks/useSignalAxios'
 import { useMockIC } from './hooks/useMockIC'
 import { useQuiz } from './hooks/useQuiz'
 import { useQuizConceptAccuracy } from './hooks/useQuizConceptAccuracy'
+import { useBenchmarks } from './hooks/useBenchmarks'
 
 function Desk() {
   const [activePanel, setActivePanel] = useState('today')
   const lifePlan = useLifePlan()
   const resultsLog = useResultsLog()
   const signal = useSignalLatest()
+  const signalAxios = useSignalAxios()
   const mockIC = useMockIC()
   const quiz = useQuiz()
   const quizAccuracy = useQuizConceptAccuracy()
+  const benchmarks = useBenchmarks()
 
   return (
     <>
@@ -33,13 +37,13 @@ function Desk() {
         <Sidebar active={activePanel} onSelect={setActivePanel} />
         <main>
           {activePanel === 'today' && (
-            <Today lifePlan={lifePlan} resultsLog={resultsLog} signal={signal} mockIC={mockIC} quiz={quiz} onGoto={setActivePanel} />
+            <Today lifePlan={lifePlan} resultsLog={resultsLog} signal={signal} mockIC={mockIC} quiz={quiz} benchmarks={benchmarks} onGoto={setActivePanel} />
           )}
           {activePanel === 'life' && <LifePlan lifePlan={lifePlan} />}
           {activePanel === 'results' && <ResultsLog resultsLog={resultsLog} quizAccuracy={quizAccuracy} />}
-          {activePanel === 'signal' && <Signal signal={signal} />}
+          {activePanel === 'signal' && <Signal signal={signal} signalAxios={signalAxios} benchmarks={benchmarks} mockIC={mockIC} />}
           {activePanel === 'quiz' && <Quiz quiz={quiz} />}
-          {activePanel === 'benchmarks' && <Benchmarks />}
+          {activePanel === 'benchmarks' && <Benchmarks benchmarks={benchmarks} />}
           {activePanel === 'mockic' && <MockIC mockIC={mockIC} />}
         </main>
       </div>
