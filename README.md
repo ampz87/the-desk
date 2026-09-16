@@ -27,6 +27,7 @@ Run the migrations in [`supabase/migrations/`](supabase/migrations/) in order, i
 - `0002_phase2_mockic.sql` — `mock_ic_deals`, `mock_ic_memos`
 - `0003_phase2_quiz.sql` — `quiz_questions`, `quiz_answers`
 - `0004_signal_gmail_and_capture.sql` — `benchmarks`, `gmail_oauth_tokens`, `signal_axios_raw`, plus a `status` column on `mock_ic_deals`
+- `0005_gmail_sync_status.sql` — `gmail_sync_status`, so the app can tell you when the daily sync has stopped working
 
 All tables have row-level security (authenticated-only access), **except `gmail_oauth_tokens`**, which has RLS enabled with zero policies — it holds a sensitive Gmail refresh token and is readable/writable only by the Supabase service role key (used server-side by the OAuth callback and the cron Worker), never by the app's normal authenticated session.
 
@@ -44,6 +45,8 @@ Things written and saved from within the app itself:
 2. Deploy the `workers/gmail-sync` Worker separately: `cd workers/gmail-sync && npx wrangler deploy`, then set its secrets: `npx wrangler secret put GOOGLE_CLIENT_ID` (and `GOOGLE_CLIENT_SECRET`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` the same way).
 3. Visit `https://the-desk-2y2.pages.dev/api/gmail/auth` once, logged in as the Google account that receives the Axios Pro Rata newsletter, and approve Gmail read access. The resulting refresh token is stored in `gmail_oauth_tokens`.
 4. The Worker's cron trigger (daily, see `workers/gmail-sync/wrangler.toml`) picks up new matching emails from then on. To test without waiting for the schedule, hit the deployed Worker's `/sync` route directly.
+
+**A real limitation, not a bug:** the Google Cloud OAuth app is in "Testing" publishing status (the practical option for a personal project — `gmail.readonly` is a restricted scope, and full verification to leave Testing mode can require a paid third-party security assessment). Testing-mode apps get test users added explicitly (Google Cloud Console → OAuth consent screen → Test users), and their refresh tokens **expire after 7 days regardless of use** — so plan to redo step 3 roughly weekly. If you forget, you won't be left guessing: the Worker records every run (success or failure) to `gmail_sync_status`, and the Signal tab shows a visible warning — with the actual error message — whenever the last run failed or it's been more than 36 hours since a successful one.
 
 ## Deployment
 

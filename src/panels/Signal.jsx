@@ -3,9 +3,10 @@ import DOMPurify from 'dompurify'
 import LogToBenchmarksModal from '../components/LogToBenchmarksModal'
 import LogToMockICModal from '../components/LogToMockICModal'
 
-export default function Signal({ signal, signalAxios, benchmarks, mockIC }) {
+export default function Signal({ signal, signalAxios, gmailSyncStatus, benchmarks, mockIC }) {
   const { row, error, loading } = signal
   const { row: axiosRow, error: axiosError, loading: axiosLoading } = signalAxios
+  const { row: syncRow, isStale } = gmailSyncStatus
   const [openModal, setOpenModal] = useState(null) // null | 'benchmarks' | 'mockic'
 
   const axiosSource = axiosRow
@@ -24,6 +25,17 @@ export default function Signal({ signal, signalAxios, benchmarks, mockIC }) {
 
       <div style={{ marginBottom: '16px' }}>
         <a href="/api/gmail/auth" className="article-src">Connect / reconnect Gmail →</a>
+        {syncRow === null && (
+          <div className="state-note" style={{ marginTop: '4px' }}>Gmail sync hasn't run yet — it checks daily once connected.</div>
+        )}
+        {isStale && (
+          <div className="state-note error" style={{ marginTop: '4px' }}>
+            {syncRow.success === false
+              ? `Last Gmail sync failed: ${syncRow.message}. `
+              : `Gmail sync hasn't succeeded since ${new Date(syncRow.ran_at).toLocaleString()}. `}
+            This usually means the Google connection expired — reconnect above.
+          </div>
+        )}
       </div>
 
       <div className="signal-row">

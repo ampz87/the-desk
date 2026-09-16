@@ -130,10 +130,41 @@ async function syncOnce(env) {
   return `Stored new email: ${email.subject}`
 }
 
+// Records every run (success or failure) so the app can surface staleness —
+// e.g. a Testing-mode Google OAuth app's refresh token expiring after 7 days
+// would otherwise fail silently with no visible signal in the UI.
+async function recordStatus(env, success, message) {
+  try {
+    await fetch(`${env.SUPABASE_URL}/rest/v1/gmail_sync_status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({ success, message }),
+    })
+  } catch (err) {
+    console.error('Failed to record sync status:', err.message)
+  }
+}
+
+async function runAndRecord(env) {
+  try {
+    const message = await syncOnce(env)
+    await recordStatus(env, true, message)
+    return message
+  } catch (err) {
+    await recordStatus(env, false, err.message)
+    throw err
+  }
+}
+
 export default {
   async scheduled(event, env, ctx) {
     ctx.waitUntil(
-      syncOnce(env)
+      runAndRecord(env)
         .then((msg) => console.log(msg))
         .catch((err) => console.error('gmail-sync failed:', err.message))
     )
@@ -144,7 +175,7 @@ export default {
     const url = new URL(request.url)
     if (url.pathname === '/sync') {
       try {
-        return new Response(await syncOnce(env), { status: 200 })
+        return new Response(await runAndRecord(env), { status: 200 })
       } catch (err) {
         return new Response(`Error: ${err.message}`, { status: 500 })
       }
