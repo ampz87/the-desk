@@ -122,6 +122,31 @@ async function storeItems(env, rows) {
   return inserted.length
 }
 
+const RETENTION_HOURS = 48
+
+// Landscape is meant to read as "what's current," not an archive — nothing
+// prunes itself otherwise, since dedup only skips re-inserting a url, it
+// never removes old rows. Deletes anything older than the same 48h window
+// the frontend filters its display to, so storage stays bounded and the
+// two are never inconsistent with each other.
+async function pruneOldItems(env) {
+  const cutoff = new Date(Date.now() - RETENTION_HOURS * 3600 * 1000).toISOString()
+  const resp = await fetch(
+    `${env.SUPABASE_URL}/rest/v1/signal_landscape_items?fetched_at=lt.${encodeURIComponent(cutoff)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+        Prefer: 'return=representation',
+      },
+    }
+  )
+  if (!resp.ok) throw new Error(`Failed to prune old landscape items: ${await resp.text()}`)
+  const deleted = await resp.json()
+  return deleted.length
+}
+
 export async function syncLandscapeOnce(env) {
   const results = []
   for (const source of LANDSCAPE_SOURCES) {
@@ -133,5 +158,13 @@ export async function syncLandscapeOnce(env) {
       results.push(`${source.name}: FAILED — ${err.message}`)
     }
   }
+
+  try {
+    const deletedCount = await pruneOldItems(env)
+    results.push(`Pruned ${deletedCount} items older than ${RETENTION_HOURS}h`)
+  } catch (err) {
+    results.push(`Prune FAILED — ${err.message}`)
+  }
+
   return results.join('; ')
 }
