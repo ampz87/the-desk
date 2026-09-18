@@ -1,6 +1,6 @@
 # The Desk — PE/VC Study Portal
 
-Personal daily-use portal for building PE/VC judgment skills. Phase 1: auth, Life Plan, Results Log, Signal (Daily tab). Phase 2: Benchmarks (DB-backed, D2C/Consumer populated so far), Mock IC (backlog/active workflow), Quiz (with per-concept accuracy feeding into Results Log), and Signal Gmail automation + quick-capture forms — all live.
+Personal daily-use portal for building PE/VC judgment skills. Phase 1: auth, Life Plan, Results Log, Signal (Daily tab). Phase 2: Benchmarks (DB-backed, D2C/Consumer populated so far), Mock IC (backlog/active workflow), Quiz (with per-concept accuracy feeding into Results Log), Signal Gmail automation + quick-capture forms, and Signal Landscape (auto-fetched raw headlines, no summarization) — all live.
 
 ## Stack
 
@@ -28,6 +28,7 @@ Run the migrations in [`supabase/migrations/`](supabase/migrations/) in order, i
 - `0003_phase2_quiz.sql` — `quiz_questions`, `quiz_answers`
 - `0004_signal_gmail_and_capture.sql` — `benchmarks`, `gmail_oauth_tokens`, `signal_axios_raw`, plus a `status` column on `mock_ic_deals`
 - `0005_gmail_sync_status.sql` — `gmail_sync_status`, so the app can tell you when the daily sync has stopped working
+- `0006_signal_landscape.sql` — `signal_landscape_items`
 
 All tables have row-level security (authenticated-only access), **except `gmail_oauth_tokens`**, which has RLS enabled with zero policies — it holds a sensitive Gmail refresh token and is readable/writable only by the Supabase service role key (used server-side by the OAuth callback and the cron Worker), never by the app's normal authenticated session.
 
@@ -38,6 +39,9 @@ Things written and saved from within the app itself:
 - **Quiz answers** — every answer (right or wrong) inserts a new row into `quiz_answers`, building a history rather than overwriting a single status per question. Results Log's per-concept accuracy breakdown is computed live from this history.
 - **Quick capture ("Log to Benchmarks" / "Log to Mock IC")** — available on the Today dashboard and inline within the raw Axios email view on Signal. New Mock IC deals always land in the backlog (`status = 'backlog'`); promote one to `'active'` from the Mock IC tab (a partial unique index enforces at most one active deal at a time).
 - **Signal's Axios Pro Rata digest** — fetched automatically once daily by the `gmail-sync` Worker and stored unsummarized in `signal_axios_raw`; the Signal tab renders the most recent row's HTML (sanitized with DOMPurify before rendering).
+- **Signal's Landscape tab** — the same Worker also fetches three RSS feeds daily (Economic Times Markets, Business Standard Economy, Nikkei Asia) and stores new items in `signal_landscape_items`, deduped on `url` via Postgres's ignore-duplicates upsert (no separate existence check needed). Each headline gets a crude keyword-based `region_tag` ('India' / 'US' / 'China' / null) — not semantic understanding, just substring matching, and intentionally left null rather than guessed when nothing matches. No LLM calls anywhere in this path.
+
+  **Sources that didn't make it, and why** (confirmed by live-testing before building, not assumed): PIB was dropped — its RSS system has no ministry-specific feeds (the `Regid` parameter is a regional bureau like Delhi/Mumbai, not a ministry), and the one feed that returns any items at all serves Hindi text regardless of the `Lang` parameter, which also breaks English keyword region-tagging. Reuters was dropped — no working public RSS feed exists any more (the classic `feeds.reuters.com` URLs don't resolve, and reuters.com blocks non-browser requests with a Cloudflare challenge); only third-party scrapers produce anything Reuters-shaped, which wasn't in scope. Business Standard Economy and Nikkei Asia were confirmed working replacements.
 
 ## Gmail sync setup (one-time)
 

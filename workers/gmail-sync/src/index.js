@@ -3,6 +3,8 @@
 // (no summarization) in signal_axios_raw. Uses the Supabase service role
 // key throughout since there's no logged-in app user in a cron context.
 
+import { syncLandscapeOnce } from './landscape.js'
+
 async function getAccessToken(env) {
   const resp = await fetch(
     `${env.SUPABASE_URL}/rest/v1/gmail_oauth_tokens?select=refresh_token&order=created_at.desc&limit=1`,
@@ -168,14 +170,29 @@ export default {
         .then((msg) => console.log(msg))
         .catch((err) => console.error('gmail-sync failed:', err.message))
     )
+    // Independent of the Gmail job — one failing (e.g. a feed URL changing)
+    // shouldn't block the other, so this isn't wrapped in the same try/catch.
+    ctx.waitUntil(
+      syncLandscapeOnce(env)
+        .then((msg) => console.log('landscape sync:', msg))
+        .catch((err) => console.error('landscape sync failed:', err.message))
+    )
   },
 
-  // Manual trigger for testing (GET /sync), plus a basic health check.
+  // Manual triggers for testing without waiting for the schedule, plus a
+  // basic health check.
   async fetch(request, env) {
     const url = new URL(request.url)
     if (url.pathname === '/sync') {
       try {
         return new Response(await runAndRecord(env), { status: 200 })
+      } catch (err) {
+        return new Response(`Error: ${err.message}`, { status: 500 })
+      }
+    }
+    if (url.pathname === '/sync-landscape') {
+      try {
+        return new Response(await syncLandscapeOnce(env), { status: 200 })
       } catch (err) {
         return new Response(`Error: ${err.message}`, { status: 500 })
       }
