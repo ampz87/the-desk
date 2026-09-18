@@ -3,11 +3,12 @@ import DOMPurify from 'dompurify'
 import LogToBenchmarksModal from '../components/LogToBenchmarksModal'
 import LogToMockICModal from '../components/LogToMockICModal'
 
-export default function Signal({ signal, signalAxios, gmailSyncStatus, signalLandscape, benchmarks, mockIC }) {
+export default function Signal({ signal, signalAxios, gmailSyncStatus, signalLandscape, signalReadOfDay, benchmarks, mockIC }) {
   const { row, error, loading } = signal
   const { row: axiosRow, error: axiosError, loading: axiosLoading } = signalAxios
   const { row: syncRow, isStale } = gmailSyncStatus
   const { bySource, error: landscapeError, loading: landscapeLoading } = signalLandscape
+  const { row: readRow, error: readError, loading: readLoading } = signalReadOfDay
   const [openModal, setOpenModal] = useState(null) // null | 'benchmarks' | 'mockic'
   const [tab, setTab] = useState('daily') // 'daily' | 'landscape'
 
@@ -81,13 +82,20 @@ export default function Signal({ signal, signalAxios, gmailSyncStatus, signalLan
             {row === null && (
               <div className="empty-state">No signal_daily entries yet — add today's row in Supabase.</div>
             )}
-            {row && row.article_title && (
-              <div className="block">
-                <div className="block-label">Today's read</div>
-                <a className="article-link" href={row.article_url || '#'} target="_blank" rel="noreferrer">{row.article_title}</a>
-                <span className="article-src">{row.article_source}</span>
-              </div>
-            )}
+            <div className="block">
+              <div className="block-label">Today's read</div>
+              {readLoading && <div className="state-note">Loading…</div>}
+              {readError && <div className="state-note error">Couldn't load today's read: {readError}</div>}
+              {readRow === null && (
+                <div className="empty-state">No new read today — nothing unseen from the last 7 days across the curated sources.</div>
+              )}
+              {readRow && (
+                <>
+                  <a className="article-link" href={readRow.url} target="_blank" rel="noreferrer">{readRow.title}</a>
+                  <span className="article-src">{readRow.source}</span>
+                </>
+              )}
+            </div>
           </div>
           <div className="signal-col">
             {row && (

@@ -4,6 +4,7 @@
 // key throughout since there's no logged-in app user in a cron context.
 
 import { syncLandscapeOnce } from './landscape.js'
+import { syncTodaysReadOnce } from './todaysRead.js'
 
 async function getAccessToken(env) {
   const resp = await fetch(
@@ -177,6 +178,11 @@ export default {
         .then((msg) => console.log('landscape sync:', msg))
         .catch((err) => console.error('landscape sync failed:', err.message))
     )
+    ctx.waitUntil(
+      syncTodaysReadOnce(env)
+        .then((msg) => console.log('todays-read sync:', msg))
+        .catch((err) => console.error('todays-read sync failed:', err.message))
+    )
   },
 
   // Manual triggers for testing without waiting for the schedule, plus a
@@ -193,6 +199,13 @@ export default {
     if (url.pathname === '/sync-landscape') {
       try {
         return new Response(await syncLandscapeOnce(env), { status: 200 })
+      } catch (err) {
+        return new Response(`Error: ${err.message}`, { status: 500 })
+      }
+    }
+    if (url.pathname === '/sync-read') {
+      try {
+        return new Response(await syncTodaysReadOnce(env), { status: 200 })
       } catch (err) {
         return new Response(`Error: ${err.message}`, { status: 500 })
       }

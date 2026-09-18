@@ -1,6 +1,6 @@
 # The Desk — PE/VC Study Portal
 
-Personal daily-use portal for building PE/VC judgment skills. Phase 1: auth, Life Plan, Results Log, Signal (Daily tab). Phase 2: Benchmarks (DB-backed, D2C/Consumer populated so far), Mock IC (backlog/active workflow), Quiz (with per-concept accuracy feeding into Results Log), Signal Gmail automation + quick-capture forms, and Signal Landscape (auto-fetched raw headlines, no summarization) — all live.
+Personal daily-use portal for building PE/VC judgment skills. Phase 1: auth, Life Plan, Results Log, Signal (Daily tab). Phase 2: Benchmarks (DB-backed, D2C/Consumer populated so far), Mock IC (backlog/active workflow), Quiz (with per-concept accuracy feeding into Results Log), Signal Gmail automation + quick-capture forms, Signal Landscape (auto-fetched raw headlines, no summarization), and Today's Read (mechanical daily article pick, no LLM) — all live.
 
 ## Stack
 
@@ -29,6 +29,7 @@ Run the migrations in [`supabase/migrations/`](supabase/migrations/) in order, i
 - `0004_signal_gmail_and_capture.sql` — `benchmarks`, `gmail_oauth_tokens`, `signal_axios_raw`, plus a `status` column on `mock_ic_deals`
 - `0005_gmail_sync_status.sql` — `gmail_sync_status`, so the app can tell you when the daily sync has stopped working
 - `0006_signal_landscape.sql` — `signal_landscape_items`
+- `0007_signal_read_of_day.sql` — `signal_read_of_day`
 
 All tables have row-level security (authenticated-only access), **except `gmail_oauth_tokens`**, which has RLS enabled with zero policies — it holds a sensitive Gmail refresh token and is readable/writable only by the Supabase service role key (used server-side by the OAuth callback and the cron Worker), never by the app's normal authenticated session.
 
@@ -42,6 +43,11 @@ Things written and saved from within the app itself:
 - **Signal's Landscape tab** — the same Worker also fetches three RSS feeds daily (Economic Times Markets, Business Standard Economy, Nikkei Asia) and stores new items in `signal_landscape_items`, deduped on `url` via Postgres's ignore-duplicates upsert (no separate existence check needed). Each headline gets a crude keyword-based `region_tag` ('India' / 'US' / 'China' / null) — not semantic understanding, just substring matching, and intentionally left null rather than guessed when nothing matches. No LLM calls anywhere in this path.
 
   **Sources that didn't make it, and why** (confirmed by live-testing before building, not assumed): PIB was dropped — its RSS system has no ministry-specific feeds (the `Regid` parameter is a regional bureau like Delhi/Mumbai, not a ministry), and the one feed that returns any items at all serves Hindi text regardless of the `Lang` parameter, which also breaks English keyword region-tagging. Reuters was dropped — no working public RSS feed exists any more (the classic `feeds.reuters.com` URLs don't resolve, and reuters.com blocks non-browser requests with a Cloudflare challenge); only third-party scrapers produce anything Reuters-shaped, which wasn't in scope. Business Standard Economy and Nikkei Asia were confirmed working replacements.
+
+  Landscape items older than 48 hours are deleted by the Worker on every run (`fetched_at < now-48h`), and the frontend filters its display to the same 48h window — it's meant to read as "what's current," not an archive, so the two can't drift out of sync with each other.
+- **Signal's Today's Read** — the same Worker also picks one article per day from 7 curated sources (Farnam Street, Of Dollars and Data, The Marginalian, Collaborative Fund, Ness Labs, Stratechery, Marginal Revolution), storing it in `signal_read_of_day`. Selection is purely mechanical: among items published in the last ~7 days that haven't been shown before (a `unique` constraint on `url` makes repeats structurally impossible), it picks whichever was published most recently — no LLM, no personalization, no topic weighting. If nothing new turns up on a given day, it shows no new read rather than forcing a repeat or a stale pick.
+
+  **One source swap, confirmed by live-testing:** Daily Stoic's feed URL is genuinely correct (verified via the site's own feed auto-discovery tag) but the feed itself has gone stale — every item in it is dated 2021-2023, nothing recent. Replaced with The Marginalian, a same-spirit reflective-essay source confirmed actively publishing. Collaborative Fund isn't WordPress like the others — its working feed is at `/feed.xml`, not the `/feed/` path that 404s.
 
 ## Gmail sync setup (one-time)
 

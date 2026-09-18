@@ -13,60 +13,14 @@
 //   - Reuters dropped: no working public RSS feed exists any more.
 //   - Replaced with Business Standard Economy (India) and Nikkei Asia
 //     (strongest of the tested alternatives for China coverage).
+
+import { parseFeedItems } from './rss.js'
+
 const LANDSCAPE_SOURCES = [
   { name: 'Economic Times Markets', url: 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms' },
   { name: 'Business Standard Economy', url: 'https://www.business-standard.com/rss/economy-102.rss' },
   { name: 'Nikkei Asia', url: 'https://asia.nikkei.com/rss/feed/nar' },
 ]
-
-function extractTag(block, tag) {
-  const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i')
-  const m = block.match(re)
-  return m ? m[1].trim() : null
-}
-
-function stripCdata(s) {
-  if (!s) return s
-  const m = s.match(/^<!\[CDATA\[([\s\S]*)\]\]>$/)
-  return (m ? m[1] : s).trim()
-}
-
-function decodeEntities(s) {
-  if (!s) return s
-  return s
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-}
-
-// Works for both RSS 2.0 (<channel><item>...) and RDF/RSS 1.0
-// (<item rdf:about="...">...) — both use structurally identical <item>
-// blocks with <title>/<link>/optional <pubDate>, which is all we need.
-function parseFeedItems(xml) {
-  const items = []
-  const itemRegex = /<item\b[^>]*>([\s\S]*?)<\/item>/gi
-  let match
-  while ((match = itemRegex.exec(xml)) !== null) {
-    const block = match[1]
-    const rawTitle = extractTag(block, 'title')
-    const rawLink = extractTag(block, 'link')
-    const rawDate = extractTag(block, 'pubDate') || extractTag(block, 'dc:date')
-    if (!rawTitle || !rawLink) continue
-
-    const headline = decodeEntities(stripCdata(rawTitle))
-    const url = decodeEntities(stripCdata(rawLink))
-    let publishedAt = null
-    if (rawDate) {
-      const d = new Date(rawDate)
-      if (!isNaN(d.getTime())) publishedAt = d.toISOString()
-    }
-    items.push({ headline, url, publishedAt })
-  }
-  return items
-}
 
 // Crude, transparent, keyword-only — not semantic understanding. First
 // matching region wins; no match leaves region_tag null rather than guessing.
@@ -95,10 +49,10 @@ async function fetchSource(source) {
   const xml = await resp.text()
   return parseFeedItems(xml).map((item) => ({
     source: source.name,
-    headline: item.headline,
+    headline: item.title,
     url: item.url,
     published_at: item.publishedAt,
-    region_tag: tagRegion(item.headline),
+    region_tag: tagRegion(item.title),
   }))
 }
 

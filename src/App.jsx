@@ -16,6 +16,7 @@ import { useSignalLatest } from './hooks/useSignalLatest'
 import { useSignalAxios } from './hooks/useSignalAxios'
 import { useGmailSyncStatus } from './hooks/useGmailSyncStatus'
 import { useSignalLandscape } from './hooks/useSignalLandscape'
+import { useSignalReadOfDay } from './hooks/useSignalReadOfDay'
 import { useMockIC } from './hooks/useMockIC'
 import { useQuiz } from './hooks/useQuiz'
 import { useQuizConceptAccuracy } from './hooks/useQuizConceptAccuracy'
@@ -29,6 +30,7 @@ function Desk() {
   const signalAxios = useSignalAxios()
   const gmailSyncStatus = useGmailSyncStatus()
   const signalLandscape = useSignalLandscape()
+  const signalReadOfDay = useSignalReadOfDay()
   const mockIC = useMockIC()
   const quiz = useQuiz()
   const quizAccuracy = useQuizConceptAccuracy()
@@ -45,7 +47,7 @@ function Desk() {
           )}
           {activePanel === 'life' && <LifePlan lifePlan={lifePlan} />}
           {activePanel === 'results' && <ResultsLog resultsLog={resultsLog} quizAccuracy={quizAccuracy} />}
-          {activePanel === 'signal' && <Signal signal={signal} signalAxios={signalAxios} gmailSyncStatus={gmailSyncStatus} signalLandscape={signalLandscape} benchmarks={benchmarks} mockIC={mockIC} />}
+          {activePanel === 'signal' && <Signal signal={signal} signalAxios={signalAxios} gmailSyncStatus={gmailSyncStatus} signalLandscape={signalLandscape} signalReadOfDay={signalReadOfDay} benchmarks={benchmarks} mockIC={mockIC} />}
           {activePanel === 'quiz' && <Quiz quiz={quiz} />}
           {activePanel === 'benchmarks' && <Benchmarks benchmarks={benchmarks} />}
           {activePanel === 'mockic' && <MockIC mockIC={mockIC} />}
