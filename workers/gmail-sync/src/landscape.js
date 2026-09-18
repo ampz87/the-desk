@@ -84,8 +84,13 @@ function tagRegion(headline) {
   return null
 }
 
+// A bot-identifying UA (e.g. "TheDeskBot/1.0") gets a 403 from Business
+// Standard's anti-bot protection — confirmed by testing both against the
+// live feed. A realistic browser UA is required, not just polite practice.
 async function fetchSource(source) {
-  const resp = await fetch(source.url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; TheDeskBot/1.0)' } })
+  const resp = await fetch(source.url, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36' },
+  })
   if (!resp.ok) throw new Error(`${source.name}: fetch failed with HTTP ${resp.status}`)
   const xml = await resp.text()
   return parseFeedItems(xml).map((item) => ({
