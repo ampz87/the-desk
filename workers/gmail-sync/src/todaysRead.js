@@ -1,4 +1,4 @@
-// Daily job: pick one article link from a curated set of 7 sources — no
+// Daily job: pick one article link from a curated set of sources — no
 // summarization, no LLM, mechanical selection only. Runs as part of the
 // same daily cron as Gmail sync and Landscape (see index.js), one more
 // data source and table rather than a second scheduled job.
@@ -11,9 +11,13 @@
 //     a same-spirit reflective-essay source confirmed actively publishing.
 //   - Collaborative Fund isn't on WordPress like the others — its feed is
 //     at /feed.xml (a Siteleaf-generated site), not /feed/, which 404s.
-//   - The other 5 (Farnam Street, Of Dollars and Data, Ness Labs,
-//     Stratechery, Marginal Revolution) all resolved at the expected
-//     WordPress-convention /feed/ path with fresh content.
+//   - Marginal Revolution removed after launch: its feed is mostly link-
+//     roundup posts pointing to other (often paywalled) outlets like FT,
+//     not original MR content — it was surfacing paywalled articles under
+//     MR's name. Dropped rather than trying to filter its feed.
+//   - The other 4 (Farnam Street, Of Dollars and Data, Ness Labs,
+//     Stratechery) all resolved at the expected WordPress-convention
+//     /feed/ path with fresh content.
 
 import { parseFeedItems } from './rss.js'
 
@@ -24,7 +28,6 @@ const READ_SOURCES = [
   { name: 'Collaborative Fund', url: 'https://www.collaborativefund.com/feed.xml' },
   { name: 'Ness Labs', url: 'https://nesslabs.com/feed' },
   { name: 'Stratechery', url: 'https://stratechery.com/feed/' },
-  { name: 'Marginal Revolution', url: 'https://marginalrevolution.com/feed' },
 ]
 
 // "Roughly the last 7 days" per the brief — wide enough that a slower-
