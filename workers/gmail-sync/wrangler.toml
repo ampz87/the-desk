@@ -3,5 +3,8 @@ main = "src/index.js"
 compatibility_date = "2026-09-15"
 
 [triggers]
-# Once daily at 06:00 UTC. Adjust as you like — cron syntax is min hour dom mon dow.
-crons = ["0 6 * * *"]
+# Two schedules, branched on event.cron in src/index.js:
+#   - 06:00 UTC (11:30 IST) — Landscape + Today's Read
+#   - 15:30 UTC (21:00 IST) — Gmail/Axios sync, timed to run after the
+#     newsletter actually arrives (~19:30 IST)
+crons = ["0 6 * * *", "30 15 * * *"]

@@ -166,13 +166,21 @@ async function runAndRecord(env) {
 
 export default {
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(
-      runAndRecord(env)
-        .then((msg) => console.log(msg))
-        .catch((err) => console.error('gmail-sync failed:', err.message))
-    )
-    // Independent of the Gmail job — one failing (e.g. a feed URL changing)
-    // shouldn't block the other, so this isn't wrapped in the same try/catch.
+    // Two schedules fire this same handler — branch on which one to decide
+    // what runs. Gmail sync moved to its own later time since the Axios
+    // newsletter arrives ~19:30 IST, well after the original single 06:00
+    // UTC (11:30 IST) run; Landscape and Today's Read stay on that one.
+    if (event.cron === '30 15 * * *') {
+      ctx.waitUntil(
+        runAndRecord(env)
+          .then((msg) => console.log(msg))
+          .catch((err) => console.error('gmail-sync failed:', err.message))
+      )
+      return
+    }
+
+    // Independent of each other — one failing (e.g. a feed URL changing)
+    // shouldn't block the other, so each gets its own try/catch.
     ctx.waitUntil(
       syncLandscapeOnce(env)
         .then((msg) => console.log('landscape sync:', msg))
