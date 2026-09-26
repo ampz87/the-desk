@@ -2,8 +2,9 @@ import { useState } from 'react'
 import DOMPurify from 'dompurify'
 import LogToBenchmarksModal from '../components/LogToBenchmarksModal'
 import LogToMockICModal from '../components/LogToMockICModal'
+import LandscapeNotes from '../components/LandscapeNotes'
 
-export default function Signal({ signal, signalAxios, gmailSyncStatus, signalLandscape, signalReadOfDay, benchmarks, mockIC }) {
+export default function Signal({ signal, signalAxios, gmailSyncStatus, signalLandscape, signalReadOfDay, landscapeNotes, benchmarks, mockIC }) {
   const { row, error, loading } = signal
   const { row: axiosRow, error: axiosError, loading: axiosLoading } = signalAxios
   const { row: syncRow, isStale } = gmailSyncStatus
@@ -142,6 +143,7 @@ export default function Signal({ signal, signalAxios, gmailSyncStatus, signalLan
             ))}
           </div>
         )}
+        <LandscapeNotes notes={landscapeNotes} />
       </div>
 
       {openModal === 'benchmarks' && (

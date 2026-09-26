@@ -21,6 +21,7 @@ import { useMockIC } from './hooks/useMockIC'
 import { useQuiz } from './hooks/useQuiz'
 import { useQuizConceptAccuracy } from './hooks/useQuizConceptAccuracy'
 import { useBenchmarks } from './hooks/useBenchmarks'
+import { useLandscapeNotes } from './hooks/useLandscapeNotes'
 
 function Desk() {
   const [activePanel, setActivePanel] = useState('today')
@@ -35,6 +36,7 @@ function Desk() {
   const quiz = useQuiz()
   const quizAccuracy = useQuizConceptAccuracy()
   const benchmarks = useBenchmarks()
+  const landscapeNotes = useLandscapeNotes()
 
   return (
     <>
@@ -47,7 +49,7 @@ function Desk() {
           )}
           {activePanel === 'life' && <LifePlan lifePlan={lifePlan} />}
           {activePanel === 'results' && <ResultsLog resultsLog={resultsLog} quizAccuracy={quizAccuracy} />}
-          {activePanel === 'signal' && <Signal signal={signal} signalAxios={signalAxios} gmailSyncStatus={gmailSyncStatus} signalLandscape={signalLandscape} signalReadOfDay={signalReadOfDay} benchmarks={benchmarks} mockIC={mockIC} />}
+          {activePanel === 'signal' && <Signal signal={signal} signalAxios={signalAxios} gmailSyncStatus={gmailSyncStatus} signalLandscape={signalLandscape} signalReadOfDay={signalReadOfDay} landscapeNotes={landscapeNotes} benchmarks={benchmarks} mockIC={mockIC} />}
           {activePanel === 'quiz' && <Quiz quiz={quiz} />}
           {activePanel === 'benchmarks' && <Benchmarks benchmarks={benchmarks} />}
           {activePanel === 'mockic' && <MockIC mockIC={mockIC} />}

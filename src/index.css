@@ -553,3 +553,15 @@ footer.desk-footer{
 }
 .capture-btn:hover{ border-color:var(--brass); color:var(--ink); }
 .capture-row{ display:flex; gap:8px; margin-top:14px; }
+
+/* Landscape notes */
+.note-row{ padding:12px 0; border-bottom:1px solid var(--rule); }
+.note-row:last-child{ border-bottom:none; }
+.note-content{ font-size:13.5px; white-space:pre-wrap; margin-bottom:6px; }
+.note-meta{ display:flex; justify-content:space-between; align-items:center; }
+.note-date{ font-size:11.5px; color:var(--ink-soft); }
+.note-delete-btn{
+  font-size:11px; border:1px solid var(--rule); background:transparent;
+  padding:3px 9px; border-radius:3px; color:var(--ink-soft); cursor:pointer;
+}
+.note-delete-btn:hover{ border-color:var(--burgundy); color:var(--burgundy); }
