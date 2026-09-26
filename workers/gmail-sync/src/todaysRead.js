@@ -35,6 +35,16 @@ const READ_SOURCES = [
 // shot at being picked, not just whichever feed happened to post today.
 const CANDIDATE_WINDOW_DAYS = 7
 
+// Confirmed by live-testing after launch: The Marginalian posts several
+// times a day, so pure "most recent wins" had it winning essentially every
+// day — Stratechery (once/day, ~10am UTC, after this job's 6am UTC run),
+// Farnam Street and Of Dollars and Data (weekly), and Collaborative Fund/
+// Ness Labs (irregular) never had a chance to be the single most-recent
+// item. A source that was picked in the last N days is skipped even if it
+// has newer unseen items, unless every remaining candidate is also on
+// cooldown (then the cooldown is dropped rather than showing nothing).
+const SOURCE_COOLDOWN_DAYS = 4
+
 async function fetchSource(source) {
   const resp = await fetch(source.url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36' },
@@ -61,6 +71,22 @@ async function fetchExistingUrls(env) {
   return new Set(rows.map((r) => r.url))
 }
 
+async function fetchRecentSources(env) {
+  const cutoff = new Date(Date.now() - SOURCE_COOLDOWN_DAYS * 24 * 3600 * 1000).toISOString()
+  const resp = await fetch(
+    `${env.SUPABASE_URL}/rest/v1/signal_read_of_day?select=source&fetched_at=gte.${encodeURIComponent(cutoff)}`,
+    {
+      headers: {
+        apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+    }
+  )
+  const rows = await resp.json()
+  if (!resp.ok) throw new Error(`Failed to read recent read-of-day sources: ${JSON.stringify(rows)}`)
+  return new Set(rows.map((r) => r.source))
+}
+
 async function insertReadOfDay(env, item) {
   const resp = await fetch(`${env.SUPABASE_URL}/rest/v1/signal_read_of_day`, {
     method: 'POST',
@@ -82,6 +108,7 @@ async function insertReadOfDay(env, item) {
 
 export async function syncTodaysReadOnce(env) {
   const existingUrls = await fetchExistingUrls(env)
+  const recentSources = await fetchRecentSources(env)
   const cutoffMs = Date.now() - CANDIDATE_WINDOW_DAYS * 24 * 3600 * 1000
 
   const allItems = []
@@ -94,7 +121,7 @@ export async function syncTodaysReadOnce(env) {
     }
   }
 
-  const candidates = allItems.filter((item) => {
+  let candidates = allItems.filter((item) => {
     if (!item.published_at) return false
     if (existingUrls.has(item.url)) return false
     return new Date(item.published_at).getTime() >= cutoffMs
@@ -104,7 +131,14 @@ export async function syncTodaysReadOnce(env) {
     return ['No new candidates — showing no new read today (by design, not a bug).', ...errors].join('; ')
   }
 
-  // Most recently published wins — no personalization, no weighting.
+  // Per-source cooldown, applied before the recency tie-break — see the
+  // SOURCE_COOLDOWN_DAYS comment above for why this exists. Falls back to
+  // the full candidate list if the cooldown would otherwise leave nothing.
+  const offCooldown = candidates.filter((item) => !recentSources.has(item.source))
+  if (offCooldown.length > 0) candidates = offCooldown
+
+  // Most recently published wins among whatever's left — no personalization,
+  // no topic weighting.
   candidates.sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
   const chosen = candidates[0]
   await insertReadOfDay(env, chosen)
