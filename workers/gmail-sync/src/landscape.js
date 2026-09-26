@@ -12,14 +12,20 @@
 //     English keyword region-tagging anyway.
 //   - Reuters dropped: no working public RSS feed exists any more.
 //   - Replaced with Business Standard Economy (India) and Nikkei Asia
-//     (strongest of the tested alternatives for China coverage).
+//     for China coverage.
+//   - Nikkei Asia dropped after launch: paywalled. Tested SCMP's China
+//     Economy feed and Caixin Global as replacements — Caixin's common
+//     RSS URL patterns all 404, no working feed found. SCMP checked out:
+//     fetched several full articles via a plain unauthenticated request
+//     and got genuine multi-paragraph body content, no login/paywall wall
+//     encountered, so it's the China-focused replacement.
 
 import { parseFeedItems } from './rss.js'
 
 const LANDSCAPE_SOURCES = [
   { name: 'Economic Times Markets', url: 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms' },
   { name: 'Business Standard Economy', url: 'https://www.business-standard.com/rss/economy-102.rss' },
-  { name: 'Nikkei Asia', url: 'https://asia.nikkei.com/rss/feed/nar' },
+  { name: 'SCMP China Economy', url: 'https://www.scmp.com/rss/318421/feed' },
 ]
 
 // Crude, transparent, keyword-only — not semantic understanding. First
