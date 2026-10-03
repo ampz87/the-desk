@@ -1,6 +1,6 @@
 # The Desk — PE/VC Study Portal
 
-Personal daily-use portal for building PE/VC judgment skills. Phase 1: auth, Life Plan, Results Log, Signal (Daily tab). Phase 2: Benchmarks (DB-backed, D2C/Consumer populated so far), Mock IC (backlog/active workflow), Quiz (with per-concept accuracy feeding into Results Log), Signal Gmail automation + quick-capture forms, Signal Landscape (auto-fetched raw headlines, no summarization) with a freeform notes scratchpad, and Today's Read (mechanical daily article pick, no LLM) — all live.
+Personal daily-use portal for building PE/VC judgment skills. Phase 1: auth, Life Plan, Results Log, Signal (Daily tab). Phase 2: Benchmarks (DB-backed, D2C/Consumer populated so far), Mock IC (backlog/active workflow), Quiz (with per-concept accuracy feeding into Results Log), Signal Gmail automation + quick-capture forms, Signal Landscape (auto-fetched raw headlines, no summarization) with a freeform notes scratchpad, Today's Read (mechanical daily article pick, no LLM), static market reference links + a stock-watch notepad, and a live Google Sheet embed for Life Plan — all live.
 
 ## Stack
 
@@ -31,10 +31,13 @@ Run the migrations in [`supabase/migrations/`](supabase/migrations/) in order, i
 - `0006_signal_landscape.sql` — `signal_landscape_items`
 - `0007_signal_read_of_day.sql` — `signal_read_of_day`
 - `0008_landscape_notes.sql` — `landscape_notes`
+- `0009_stock_watch_notes.sql` — `stock_watch_notes`
 
 All tables have row-level security (authenticated-only access), **except `gmail_oauth_tokens`**, which has RLS enabled with zero policies — it holds a sensitive Gmail refresh token and is readable/writable only by the Supabase service role key (used server-side by the OAuth callback and the cron Worker), never by the app's normal authenticated session.
 
-Life Plan, Signal (`signal_daily`), and all quiz questions are still entered directly in the Supabase table editor. Benchmarks and Mock IC deals can now also be added through the app itself (see Quick capture below) as well as directly in Supabase. `quiz_questions.options` is a JSON array of `{id, text}`; `correct_option_id` must match one of those ids.
+All quiz questions are still entered directly in the Supabase table editor. Benchmarks and Mock IC deals can now also be added through the app itself (see Quick capture below) as well as directly in Supabase. `quiz_questions.options` is a JSON array of `{id, text}`; `correct_option_id` must match one of those ids.
+
+**`life_plan` and `signal_daily` are retired from the UI, not dropped from the database.** Life Plan is now a live Google Sheet embed instead of a table view (see below) — the `life_plan` table and its data still exist but nothing reads them any more. Similarly, every field `signal_daily` used to drive (digest summary, today's read, stocks to watch) has since been superseded by automation or a static panel, so it's no longer queried either. Both tables were left in place rather than dropped, in case either is ever wanted again.
 
 Things written and saved from within the app itself:
 - **Mock IC memos** — saving a memo for the first time on a given deal also logs a `memo_written` row in `results_log`.
@@ -51,7 +54,9 @@ Things written and saved from within the app itself:
   **The per-source cooldown was added after launch, not part of the original design:** pure "most recent wins" had The Marginalian (which posts several times a day) winning almost every single day, since Stratechery (once/day, after this job's 6am UTC run), Farnam Street/Of Dollars and Data (weekly), and Collaborative Fund/Ness Labs (irregular) could essentially never have the single most-recent item across all sources. Confirmed by checking each feed's actual publish cadence rather than assuming. The cooldown falls back to ignoring itself if every remaining candidate is also on cooldown, so it never causes a day to show nothing that a candidate existed for.
 
   **Two source changes, both confirmed by testing, not assumed:** Daily Stoic's feed URL is genuinely correct (verified via the site's own feed auto-discovery tag) but the feed itself has gone stale — every item in it is dated 2021-2023, nothing recent. Replaced with The Marginalian, a same-spirit reflective-essay source confirmed actively publishing. Collaborative Fund isn't WordPress like the others — its working feed is at `/feed.xml`, not the `/feed/` path that 404s. Marginal Revolution was included at launch but removed shortly after — its feed turned out to be mostly link-roundup posts pointing to other (often paywalled) outlets like FT rather than original MR content, surfacing paywalled articles under MR's name. Dropped outright rather than trying to filter its feed.
-- **Landscape notes** — a plain freeform scratchpad on the Landscape tab (`landscape_notes`), entered and deleted entirely from within the app itself, not Supabase. No linkage to specific headlines, no auto-archiving, no tagging — just a running list, newest first, that the user manages by deleting entries themselves. Deleting is immediate (no confirmation modal), applied optimistically in the UI and rolled back if the delete actually fails server-side.
+- **Landscape notes** and **Stock-watch notes** — identical freeform-scratchpad pattern (textarea + save, running list newest-first, immediate no-confirmation delete applied optimistically and rolled back on failure), sharing one implementation (`useNotesTable`/`NotesBlock`) pointed at two separate tables (`landscape_notes` on the Landscape tab, `stock_watch_notes` on Signal Daily, in the old stocks-to-watch spot) so the two stay visually distinct and never mixed up. No linkage to specific headlines/stocks, no auto-archiving, no tagging — just plain running lists the user manages by deleting entries themselves.
+- **Market reference links** — a static, hardcoded list (Gold Price, Brent Crude Oil, Currencies, Commodities) replacing the old manually-entered stocks-to-watch section on Signal Daily. No database table, no fetching — just glance-reference links that open in a new tab.
+- **Life Plan** is now a live Google Sheet embed (`src/panels/LifePlan.jsx`) via the sheet's "Publish to web" URL, replacing the `life_plan` table view entirely (user's choice — the Sheet is the actual working document now). Published-to-web was chosen over a plain share-link `/edit` embed because it renders a clean table with no Sheets editor chrome, which is what "readable without leaving the portal" actually wants. Re-publishing is manual on the user's end if the sheet's structure changes enough to need a different `gid`.
 
 ## Gmail sync setup (one-time)
 

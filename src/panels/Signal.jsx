@@ -2,10 +2,16 @@ import { useState } from 'react'
 import DOMPurify from 'dompurify'
 import LogToBenchmarksModal from '../components/LogToBenchmarksModal'
 import LogToMockICModal from '../components/LogToMockICModal'
-import LandscapeNotes from '../components/LandscapeNotes'
+import NotesBlock from '../components/NotesBlock'
 
-export default function Signal({ signal, signalAxios, gmailSyncStatus, signalLandscape, signalReadOfDay, landscapeNotes, benchmarks, mockIC }) {
-  const { row, error, loading } = signal
+const MARKET_LINKS = [
+  { title: 'Gold Price', url: 'https://indiamacroindicators.co.in/economic-indicators/gold-price' },
+  { title: 'Brent Crude Oil', url: 'https://tradingeconomics.com/commodity/brent-crude-oil' },
+  { title: 'Currencies', url: 'https://www.investing.com/currencies/' },
+  { title: 'Commodities', url: 'https://www.investing.com/commodities/' },
+]
+
+export default function Signal({ signalAxios, gmailSyncStatus, signalLandscape, signalReadOfDay, landscapeNotes, stockWatchNotes, benchmarks, mockIC }) {
   const { row: axiosRow, error: axiosError, loading: axiosLoading } = signalAxios
   const { row: syncRow, isStale } = gmailSyncStatus
   const { bySource, error: landscapeError, loading: landscapeLoading } = signalLandscape
@@ -78,11 +84,6 @@ export default function Signal({ signal, signalAxios, gmailSyncStatus, signalLan
               )}
             </div>
 
-            {loading && <div className="state-note">Loading…</div>}
-            {error && <div className="state-note error">Couldn't load signal: {error}</div>}
-            {row === null && (
-              <div className="empty-state">No signal_daily entries yet — add today's row in Supabase.</div>
-            )}
             <div className="block">
               <div className="block-label">Today's read</div>
               {readLoading && <div className="state-note">Loading…</div>}
@@ -99,20 +100,19 @@ export default function Signal({ signal, signalAxios, gmailSyncStatus, signalLan
             </div>
           </div>
           <div className="signal-col">
-            {row && (
-              <div className="block">
-                <div className="block-label">Stocks to watch this week</div>
-                {(!row.stocks_to_watch || row.stocks_to_watch.length === 0) && (
-                  <div className="empty-state">No stocks listed for this entry.</div>
-                )}
-                {row.stocks_to_watch && row.stocks_to_watch.map((s, i) => (
-                  <div className="watch-row" key={i}>
-                    <span className="watch-ticker">{s.ticker}</span>
-                    <span className="watch-note">{s.note}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="block">
+              <div className="block-label">Market reference links</div>
+              {MARKET_LINKS.map((link) => (
+                <div key={link.url} style={{ marginBottom: '10px' }}>
+                  <a className="article-link" href={link.url} target="_blank" rel="noreferrer">{link.title}</a>
+                </div>
+              ))}
+            </div>
+            <NotesBlock
+              notes={stockWatchNotes}
+              label="Stock-watch notes"
+              placeholder="Notes on stocks you're watching — entries, exits, thoughts…"
+            />
           </div>
         </div>
       </div>
@@ -143,7 +143,11 @@ export default function Signal({ signal, signalAxios, gmailSyncStatus, signalLan
             ))}
           </div>
         )}
-        <LandscapeNotes notes={landscapeNotes} />
+        <NotesBlock
+          notes={landscapeNotes}
+          label="Notes"
+          placeholder="Thoughts, excerpts, anything worth keeping while you read…"
+        />
       </div>
 
       {openModal === 'benchmarks' && (

@@ -2,11 +2,9 @@ import { useState } from 'react'
 import LogToBenchmarksModal from '../components/LogToBenchmarksModal'
 import LogToMockICModal from '../components/LogToMockICModal'
 
-export default function Today({ lifePlan, resultsLog, signal, mockIC, quiz, benchmarks, onGoto }) {
+export default function Today({ resultsLog, mockIC, quiz, benchmarks, onGoto }) {
   const [openModal, setOpenModal] = useState(null) // null | 'benchmarks' | 'mockic'
-  const lifePlanCount = lifePlan.rows ? lifePlan.rows.length : null
   const totalLogged = resultsLog.rows ? resultsLog.rows.length : null
-  const signalDate = signal.row ? new Date(signal.row.entry_date).toLocaleDateString() : null
   const mockICStat = mockIC.deal === undefined
     ? 'Loading…'
     : mockIC.deal === null
@@ -34,8 +32,8 @@ export default function Today({ lifePlan, resultsLog, signal, mockIC, quiz, benc
       <div className="grid">
         <div className="card" onClick={() => onGoto('life')}>
           <div className="card-top"><span className="card-title">Life plan</span><span className="card-tag">From Excel</span></div>
-          <div className="card-body">Knowledge → VC angle → Wealth creation → Career angle — glance view of the four pillars.</div>
-          <div className="card-stat">{lifePlanCount === null ? 'Loading…' : `${lifePlanCount} deliverables tracked`}</div>
+          <div className="card-body">Knowledge → VC angle → Wealth creation → Career angle — live embed of the sheet.</div>
+          <div className="card-stat">Open to view the sheet</div>
         </div>
 
         <div className="card" onClick={() => onGoto('results')}>
@@ -46,8 +44,8 @@ export default function Today({ lifePlan, resultsLog, signal, mockIC, quiz, benc
 
         <div className="card" onClick={() => onGoto('signal')}>
           <div className="card-top"><span className="card-title">Signal</span><span className="card-tag">Daily</span></div>
-          <div className="card-body">Axios PE/VC digest, one read for the day, and stocks worth a look this week.</div>
-          <div className="card-stat">{signalDate ? `Latest entry: ${signalDate}` : signal.loading ? 'Loading…' : 'No entry yet'}</div>
+          <div className="card-body">Axios PE/VC digest, one read for the day, a landscape of headlines, and market reference links.</div>
+          <div className="card-stat">Open for today's digest</div>
         </div>
 
         <div className="card" onClick={() => onGoto('quiz')}>

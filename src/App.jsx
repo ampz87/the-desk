@@ -10,9 +10,7 @@ import Signal from './panels/Signal'
 import Benchmarks from './panels/Benchmarks'
 import MockIC from './panels/MockIC'
 import Quiz from './panels/Quiz'
-import { useLifePlan } from './hooks/useLifePlan'
 import { useResultsLog } from './hooks/useResultsLog'
-import { useSignalLatest } from './hooks/useSignalLatest'
 import { useSignalAxios } from './hooks/useSignalAxios'
 import { useGmailSyncStatus } from './hooks/useGmailSyncStatus'
 import { useSignalLandscape } from './hooks/useSignalLandscape'
@@ -22,12 +20,11 @@ import { useQuiz } from './hooks/useQuiz'
 import { useQuizConceptAccuracy } from './hooks/useQuizConceptAccuracy'
 import { useBenchmarks } from './hooks/useBenchmarks'
 import { useLandscapeNotes } from './hooks/useLandscapeNotes'
+import { useStockWatchNotes } from './hooks/useStockWatchNotes'
 
 function Desk() {
   const [activePanel, setActivePanel] = useState('today')
-  const lifePlan = useLifePlan()
   const resultsLog = useResultsLog()
-  const signal = useSignalLatest()
   const signalAxios = useSignalAxios()
   const gmailSyncStatus = useGmailSyncStatus()
   const signalLandscape = useSignalLandscape()
@@ -37,6 +34,7 @@ function Desk() {
   const quizAccuracy = useQuizConceptAccuracy()
   const benchmarks = useBenchmarks()
   const landscapeNotes = useLandscapeNotes()
+  const stockWatchNotes = useStockWatchNotes()
 
   return (
     <>
@@ -45,11 +43,11 @@ function Desk() {
         <Sidebar active={activePanel} onSelect={setActivePanel} />
         <main>
           {activePanel === 'today' && (
-            <Today lifePlan={lifePlan} resultsLog={resultsLog} signal={signal} mockIC={mockIC} quiz={quiz} benchmarks={benchmarks} onGoto={setActivePanel} />
+            <Today resultsLog={resultsLog} mockIC={mockIC} quiz={quiz} benchmarks={benchmarks} onGoto={setActivePanel} />
           )}
-          {activePanel === 'life' && <LifePlan lifePlan={lifePlan} />}
+          {activePanel === 'life' && <LifePlan />}
           {activePanel === 'results' && <ResultsLog resultsLog={resultsLog} quizAccuracy={quizAccuracy} />}
-          {activePanel === 'signal' && <Signal signal={signal} signalAxios={signalAxios} gmailSyncStatus={gmailSyncStatus} signalLandscape={signalLandscape} signalReadOfDay={signalReadOfDay} landscapeNotes={landscapeNotes} benchmarks={benchmarks} mockIC={mockIC} />}
+          {activePanel === 'signal' && <Signal signalAxios={signalAxios} gmailSyncStatus={gmailSyncStatus} signalLandscape={signalLandscape} signalReadOfDay={signalReadOfDay} landscapeNotes={landscapeNotes} stockWatchNotes={stockWatchNotes} benchmarks={benchmarks} mockIC={mockIC} />}
           {activePanel === 'quiz' && <Quiz quiz={quiz} />}
           {activePanel === 'benchmarks' && <Benchmarks benchmarks={benchmarks} />}
           {activePanel === 'mockic' && <MockIC mockIC={mockIC} />}

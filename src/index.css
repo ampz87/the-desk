@@ -346,29 +346,6 @@ table.bench td.rationale{ color:var(--ink-soft); font-size:12.5px; }
   font-size:12px; color:var(--ink-soft); font-style:italic; margin-top:12px;
 }
 
-/* Life plan */
-table.lifeplan{ width:100%; border-collapse:collapse; font-size:13.5px; }
-table.lifeplan th{
-  text-align:left;
-  font-size:10.5px;
-  text-transform:uppercase;
-  letter-spacing:.06em;
-  color:var(--ink-soft);
-  font-weight:500;
-  padding:8px 10px;
-  border-bottom:1px solid var(--rule);
-}
-table.lifeplan td{ padding:11px 10px; border-bottom:1px solid var(--rule); vertical-align:top; }
-table.lifeplan tr:last-child td{ border-bottom:none; }
-td.lp-pillar{ font-size:10.5px; color:var(--brass-deep); text-transform:uppercase; letter-spacing:.05em; white-space:nowrap; }
-td.lp-item{ font-weight:500; }
-td.lp-status{ color:var(--ink-soft); white-space:nowrap; }
-td.lp-note{ color:var(--ink-soft); font-size:12.5px; }
-.source-note{
-  font-size:12px; color:var(--ink-soft); background:var(--paper-deep);
-  border-radius:3px; padding:10px 14px; margin-top:16px;
-}
-
 /* Mock IC */
 .ic-deal-head{ display:flex; justify-content:space-between; margin-bottom:16px; }
 .ic-deal-name{ font-size:19px; font-weight:600; }
@@ -418,13 +395,6 @@ textarea.ic-memo{
   border-bottom:1px solid var(--rule);
 }
 .article-src{ font-size:11.5px; color:var(--ink-soft); }
-.watch-row{
-  display:flex; justify-content:space-between; align-items:center;
-  padding:9px 0; border-bottom:1px solid var(--rule); font-size:13.5px;
-}
-.watch-row:last-child{ border-bottom:none; }
-.watch-ticker{ font-family:'IBM Plex Mono', monospace; font-weight:500; }
-.watch-note{ color:var(--ink-soft); font-size:12px; }
 
 /* Coming soon placeholder */
 .coming-soon{

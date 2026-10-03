@@ -1,6 +1,10 @@
 import { useState } from 'react'
 
-export default function LandscapeNotes({ notes: notesData }) {
+// Shared by Landscape Notes and the Stock-watch notepad — same plain
+// running-list pattern, parameterized so the two stay visually distinct
+// (different label/placeholder, and used in different tabs) without
+// duplicating the save/delete logic.
+export default function NotesBlock({ notes: notesData, label = 'Notes', placeholder = 'Write a note…' }) {
   const { notes, error, loading, addNote, deleteNote } = notesData
   const [draft, setDraft] = useState('')
   const [saving, setSaving] = useState(false)
@@ -18,11 +22,11 @@ export default function LandscapeNotes({ notes: notesData }) {
 
   return (
     <div className="block">
-      <div className="block-label">Notes</div>
+      <div className="block-label">{label}</div>
       <textarea
         className="form-textarea"
         style={{ minHeight: '90px', marginBottom: '10px' }}
-        placeholder="Thoughts, excerpts, anything worth keeping while you read…"
+        placeholder={placeholder}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
       />
